@@ -1,0 +1,10 @@
+{
+  "name": "dataTrace",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "python main.py --env dev",
+    "build": "python build.py"
+  }
+}

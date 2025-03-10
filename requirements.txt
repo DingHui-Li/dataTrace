@@ -1,0 +1,17 @@
+fastapi==0.104.1
+uvicorn==0.24.0
+python-dotenv==1.0.0
+pydantic==2.5.2
+sqlalchemy==2.0.23
+alembic==1.12.1
+python-jose==3.3.0
+passlib==1.7.4
+python-multipart==0.0.6
+starlette==0.27.0
+aiohttp
+bs4
+nest_asyncio
+Selenium
+webdriver_manager
+openai
+pyinstaller
