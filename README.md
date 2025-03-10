@@ -34,11 +34,10 @@
 
 ```bash
 # 安装python依赖
-pip install -r requirements.txt
+./ pip install -r requirements.txt
 
 # 安装前端依赖
-cd frontend
-npm install
+./frontend npm install
 
 # 开发
 ./ npm run dev
