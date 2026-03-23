@@ -78,6 +78,18 @@ async def get_platform_stats():
             detail=str(e)
         )
 
+@router.post("/harvest/clear")
+async def clear_harvest_memory():
+    """清空当前批次采集的内存数据（不涉及数据库）"""
+    try:
+        await crawler_service.clear_memory()
+        return JSONResponse(content={'success': True, 'message': '内存数据已清空'})
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+
 @router.get("/data/query")
 async def query_results(
     platform: Optional[str] = Query(None),
