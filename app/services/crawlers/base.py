@@ -1,6 +1,7 @@
 import json
 import time
 from typing import Dict
+from typing import Union, List
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -16,7 +17,7 @@ class BaseCrawler:
         self._cookie_added = False
         self.repository = CrawlerRepository()
 
-    async def save_content(self, result: CrawlResult | list[CrawlResult]):
+    async def save_content(self, result: Union[CrawlResult, List[CrawlResult]]):
         """保存爬取的内容到数据库
         
         Args:

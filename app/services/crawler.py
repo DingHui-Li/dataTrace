@@ -71,3 +71,10 @@ class CrawlerService:
             if hasattr(self.current_crawler, 'stop_crawl'):
                 await self.current_crawler.stop_crawl()
             self.current_crawler = None
+
+    async def clear_memory(self):
+        """清空当前批次采集的内存数据"""
+        if self.current_crawler:
+            if hasattr(self.current_crawler, 'close_browser'):
+                await self.current_crawler.close_browser()
+            self.current_crawler = None

@@ -1,7 +1,13 @@
 <template>
   <div class="charts" v-if="list.length">
     <div class="title">4-图表分析</div>
-    <div class="label">关键词</div>
+    <div class="label">
+      关键词
+      <el-select v-model="wordCloudColor" size="small" style="width: 90px; margin-left: 10px;">
+        <el-option label="蓝色系" value="blue" />
+        <el-option label="红色系" value="red" />
+      </el-select>
+    </div>
     <div class="chart word-chart" ref="wordChartEl" :style="`height:${(wordChartEl?.clientWidth) / 2}px`"></div>
     <div class="label">情绪趋势</div>
     <div class="chart" ref="lineChartEl" :style="`height:${lineChartEl?.clientWidth / 2}px`"></div>
@@ -20,6 +26,12 @@ import { handleUpdate } from '../components/panel.ts'
 import { getEmotionEmoji } from '../index'
 
 const wordChartEl = ref()
+const wordCloudColor = ref('blue')
+
+// 监听配色变化，重新渲染词云
+watch(wordCloudColor, () => {
+  renderWordCloud()
+})
 
 const lineChartEl = ref()
 const lineChartIns = shallowRef()
@@ -69,30 +81,53 @@ const keywordMap = computed(() => {
   return t
 })
 
+let wordCloudTimer: any = null
+
 function renderWordCloud() {
-  let max = 0
-  let min = 0
-  console.log(keywordMap.value['科技美学'])
-  console.log(keywordMap.value['抽奖'])
-  Object.keys(keywordMap.value).forEach((word: any) => {
-    max = Math.max(keywordMap.value[word], max)
-    min = Math.min(keywordMap.value[word], min)
-  })
-  WordCloud(wordChartEl.value, {
-    // minSize: 12,
-    shape: "square",
-    shuffle: true,
-    backgroundColor: "transparent",
-    color: "#ffffff",
-    shrinkToFit: true,
-    minSize: 5,
-    list: Object.keys(keywordMap.value).map(word => {
-      return [
-        word,
-        keywordMap.value[word] - min / (max - min) * (30 - 12) + 12
-      ]
+  // 使用防抖避免重复渲染
+  clearTimeout(wordCloudTimer)
+  wordCloudTimer = setTimeout(() => {
+    let max = 0
+    let min = 0
+    Object.keys(keywordMap.value).forEach((word: any) => {
+      max = Math.max(keywordMap.value[word], max)
+      min = Math.min(keywordMap.value[word], min)
     })
-  })
+
+    // 定义配色方案
+    const colorSchemes: any = {
+      blue: ['#1e3a8a', '#1d4ed8', '#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe'],
+      red: ['#7f1d1d', '#b91c1c', '#dc2626', '#ef4444', '#f87171', '#fca5a5']
+    }
+    const colors = colorSchemes[wordCloudColor.value] || colorSchemes.blue
+
+    // 清空画布避免重复覆盖 - 使用 while 循环确保所有子元素被移除
+    if (wordChartEl.value) {
+      while (wordChartEl.value.firstChild) {
+        wordChartEl.value.removeChild(wordChartEl.value.firstChild)
+      }
+    }
+
+    // 如果没有数据则不渲染
+    if (Object.keys(keywordMap.value).length === 0) return
+
+    WordCloud(wordChartEl.value, {
+      shape: "square",
+      shuffle: true,
+      backgroundColor: "transparent",
+      color: function() {
+        return colors[Math.floor(Math.random() * colors.length)]
+      },
+      shrinkToFit: true,
+      minSize: 5,
+      list: Object.keys(keywordMap.value).map(word => {
+        return [
+          word,
+          keywordMap.value[word] - min / (max - min) * (30 - 12) + 12
+        ]
+      })
+    })
+  }, 50)
 }
 
 function renderLineChart() {

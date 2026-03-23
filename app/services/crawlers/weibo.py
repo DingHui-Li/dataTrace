@@ -120,11 +120,14 @@ class WeiboCrawler(BaseCrawler):
                                     all_items.append(content_item)
                                     total_items = len(all_items)
                                     
-                                    # 发送进度
+                                    # 发送进度（预估最多50条，计算百分比）
+                                    estimated_total = max(50, total_items)
+                                    percentage = min(int((current_index / estimated_total) * 100), 99)
                                     yield json.dumps({
                                         'status': 'processing',
                                         'current': current_index,
                                         'total': total_items,
+                                        'percentage': percentage,
                                     }, ensure_ascii=False) + "\n"
                             
                             page += 1

@@ -15,6 +15,8 @@
       <el-button class="database" @click="databasePopup = { show: true, platform: '' }" circle :icon="Box"
         type="primary" :loading="loading">
       </el-button>
+      <el-button class="clear-btn" @click="clearHarvestMemory" circle :icon="Delete" title="清空当前批次">
+      </el-button>
     </div>
     <div class="platform-list">
       <div :class="['platform-item', !harvestResult[item.key]?.status && 'disabled']" v-for="item in config">
@@ -42,6 +44,9 @@
               </div>
             </transition>
           </div>
+          <div class="percentage" v-if="harvestResult[item.key]?.status == 'pending'">
+            {{ harvestResult[item.key]?.percentage || 0 }}%
+          </div>
           <div class="btn" @click="databasePopup = { show: true, platform: item.key }">
             条内容
             <el-icon style="color:#999;font-size: 12px">
@@ -67,11 +72,13 @@
 </template>
 <script setup lang="ts">
 import comConfig from '../components/config.vue'
-import { Operation, Close, Select, RefreshRight, Box, ArrowRight } from '@element-plus/icons-vue'
+import { Operation, Close, Select, RefreshRight, Box, ArrowRight, Delete } from '@element-plus/icons-vue'
 import { computed, ref } from 'vue'
 import { harvestResult, config, startHarvest } from '@/store/data-harvest'
 import comLoading from '../components/loading.vue'
 import comDatabase from '../components/database.vue'
+import http from '@/utils/http'
+import { ElMessage } from 'element-plus'
 
 const databasePopup = ref({
   show: false,
@@ -95,6 +102,30 @@ const maxPlatformCount = computed(() => {
   })
   return t
 })
+
+// 清空当前批次采集的内存数据
+const clearHarvestMemory = async () => {
+  try {
+    const res: any = await http.post('/harvest/clear')
+    if (res && res.success) {
+      // 清空前端内存数据
+      Object.keys(harvestResult.value).forEach((key) => {
+        harvestResult.value[key] = {
+          current: 0,
+          total: 0,
+          status: 'success',
+          percentage: 0
+        }
+      })
+      ElMessage.success('当前批次数据已清空')
+    } else {
+      ElMessage.error('清空失败')
+    }
+  } catch (error) {
+    console.error('清空失败:', error)
+    ElMessage.error('清空失败')
+  }
+}
 </script>
 <style lang="less" scoped>
 .data-harvest {
@@ -122,6 +153,12 @@ const maxPlatformCount = computed(() => {
       position: absolute;
       top: -5px;
       right: 0;
+    }
+
+    .clear-btn {
+      position: absolute;
+      top: -5px;
+      right: 40px;
     }
   }
 
@@ -199,6 +236,13 @@ const maxPlatformCount = computed(() => {
           position: absolute;
           right: 0;
         }
+      }
+
+      .percentage {
+        font-size: 12px;
+        color: var(--el-color-primary);
+        margin-right: 8px;
+        font-weight: bold;
       }
 
       .btn {
