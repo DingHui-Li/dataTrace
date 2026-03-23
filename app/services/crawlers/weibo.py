@@ -121,10 +121,13 @@ class WeiboCrawler(BaseCrawler):
                                     total_items = len(all_items)
                                     
                                     # 发送进度
+                                    percent = int((current_index / max(total_items, 1)) * 100)
+                                    print(f'[微博采集] 进度: {percent}% ({current_index}/{total_items})')
                                     yield json.dumps({
                                         'status': 'processing',
                                         'current': current_index,
                                         'total': total_items,
+                                        'percent': percent
                                     }, ensure_ascii=False) + "\n"
                             
                             page += 1

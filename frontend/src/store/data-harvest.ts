@@ -115,6 +115,7 @@ export const startHarvest = async (singlePlatform: string) => {
                   ...harvestResult.value[platform.key],
                   current: data.current,
                   total: data.total,
+                  percent: data.percent,
                   status: "pending",
                 };
               } else if (data.status === "complete") {
