@@ -1,7 +1,13 @@
 <template>
   <div class="charts" v-if="list.length">
     <div class="title">4-图表分析</div>
-    <div class="label">关键词</div>
+    <div class="label">
+      关键词
+      <el-select v-model="wordCloudColor" size="small" style="width: 100px; margin-left: 10px;" @change="renderWordCloud">
+        <el-option label="蓝色系" value="blue" />
+        <el-option label="红色系" value="red" />
+      </el-select>
+    </div>
     <div class="chart word-chart" ref="wordChartEl" :style="`height:${(wordChartEl?.clientWidth) / 2}px`"></div>
     <div class="label">情绪趋势</div>
     <div class="chart" ref="lineChartEl" :style="`height:${lineChartEl?.clientWidth / 2}px`"></div>
@@ -20,6 +26,7 @@ import { handleUpdate } from '../components/panel.ts'
 import { getEmotionEmoji } from '../index'
 
 const wordChartEl = ref()
+const wordCloudColor = ref('blue')
 
 const lineChartEl = ref()
 const lineChartIns = shallowRef()
@@ -78,12 +85,15 @@ function renderWordCloud() {
     max = Math.max(keywordMap.value[word], max)
     min = Math.min(keywordMap.value[word], min)
   })
+  const colorSchemes: Record<string, string> = {
+    blue: '#4A90D9',
+    red: '#E74C3C'
+  }
   WordCloud(wordChartEl.value, {
-    // minSize: 12,
     shape: "square",
     shuffle: true,
     backgroundColor: "transparent",
-    color: "#ffffff",
+    color: colorSchemes[wordCloudColor.value] || '#ffffff',
     shrinkToFit: true,
     minSize: 5,
     list: Object.keys(keywordMap.value).map(word => {

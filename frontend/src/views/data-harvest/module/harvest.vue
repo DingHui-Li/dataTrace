@@ -15,6 +15,8 @@
       <el-button class="database" @click="databasePopup = { show: true, platform: '' }" circle :icon="Box"
         type="primary" :loading="loading">
       </el-button>
+      <el-button class="clear-btn" @click="clearMemoryData" :icon="Delete" circle size="small">
+      </el-button>
     </div>
     <div class="platform-list">
       <div :class="['platform-item', !harvestResult[item.key]?.status && 'disabled']" v-for="item in config">
@@ -57,6 +59,9 @@
           </div>
         </div>
         <div class="msg" v-if="harvestResult[item.key]?.msg">{{ harvestResult[item.key]?.msg }}</div>
+        <div class="percent" v-if="harvestResult[item.key]?.status == 'pending' && harvestResult[item.key]?.percent">
+          采集进度: {{ harvestResult[item.key]?.percent }}%
+        </div>
       </div>
     </div>
     <el-dialog class="database-panel" v-model="databasePopup.show" append-to-body fullscreen
@@ -67,11 +72,12 @@
 </template>
 <script setup lang="ts">
 import comConfig from '../components/config.vue'
-import { Operation, Close, Select, RefreshRight, Box, ArrowRight } from '@element-plus/icons-vue'
+import { Operation, Close, Select, RefreshRight, Box, ArrowRight, Delete } from '@element-plus/icons-vue'
 import { computed, ref } from 'vue'
 import { harvestResult, config, startHarvest } from '@/store/data-harvest'
 import comLoading from '../components/loading.vue'
 import comDatabase from '../components/database.vue'
+import http from '@/utils/http'
 
 const databasePopup = ref({
   show: false,
@@ -95,6 +101,17 @@ const maxPlatformCount = computed(() => {
   })
   return t
 })
+
+const clearMemoryData = async () => {
+  try {
+    await http.get('/data/clear-memory')
+    Object.keys(harvestResult.value).forEach((key) => {
+      harvestResult.value[key] = { total: 0, status: 'fail' }
+    })
+  } catch (e) {
+    console.error('清空内存数据失败', e)
+  }
+}
 </script>
 <style lang="less" scoped>
 .data-harvest {
@@ -122,6 +139,12 @@ const maxPlatformCount = computed(() => {
       position: absolute;
       top: -5px;
       right: 0;
+    }
+
+    .clear-btn {
+      position: absolute;
+      top: -5px;
+      right: 40px;
     }
   }
 
@@ -246,6 +269,14 @@ const maxPlatformCount = computed(() => {
         margin-top: 10px;
         font-size: 12px;
         color: #FF5252;
+      }
+
+      .percent {
+        padding-left: 28px;
+        margin-top: 5px;
+        font-size: 12px;
+        color: #67C23A;
+        font-weight: bold;
       }
     }
   }

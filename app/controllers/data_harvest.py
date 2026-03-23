@@ -78,6 +78,17 @@ async def get_platform_stats():
             detail=str(e)
         )
 
+@router.get("/data/clear-memory")
+async def clear_memory_data():
+    try:
+        flag = crawler_service.clear_memory()
+        return JSONResponse(content={'result': flag})
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+
 @router.get("/data/query")
 async def query_results(
     platform: Optional[str] = Query(None),

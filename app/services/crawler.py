@@ -4,6 +4,11 @@ import json
 class CrawlerService:
     def __init__(self):
         self.current_crawler = None
+        self.memory_data = {}
+
+    def clear_memory(self):
+        self.memory_data = {}
+        return True
 
     async def crawl_platform(self, platform: str, base_url: str, cookie: str = '') -> AsyncGenerator[str, None]:
         """统一的平台爬取方法
