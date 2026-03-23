@@ -130,11 +130,16 @@ class ZhihuCrawler(BaseCrawler):
 
                         all_items.append(content_item)
 
+                        # 发送进度（带百分比）
+                        estimated_total = 100
+                        percentage = min(int((current_index / estimated_total) * 100), 99)
                         yield json.dumps({
                             'status': 'processing',
                             'current': current_index,
                             'total': total_items,
+                            'percentage': percentage,
                         }, ensure_ascii=False) + "\n"
+                        print(f'[进度] 知乎采集: {percentage}%')
                     except Exception as e:
                         raise e
                         continue

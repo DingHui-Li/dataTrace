@@ -44,6 +44,20 @@ const getInitialConfig = (): Array<DataSourceConfig> => {
 
 export const config = ref<Array<DataSourceConfig>>(getInitialConfig());
 export const harvestResult = ref<any>({});
+// 标记：是否已清空内存数据（用于阻止从数据库刷新统计）
+export const isMemoryCleared = ref(false);
+// 清空内存数据（不影响数据库）
+export function clearMemoryData() {
+  isMemoryCleared.value = true;
+  // 手动设置所有平台显示为0
+  config.value.forEach((platform) => {
+    harvestResult.value[platform.key] = {
+      current: 0,
+      total: 0,
+      status: "success",
+    };
+  });
+}
 export const configMap = computed(() => {
   let t: any = {};
   config.value.forEach((v) => {
@@ -57,6 +71,10 @@ watch(config.value, (v) => {
 });
 getDatabaseStat();
 export function getDatabaseStat() {
+  // 如果已清空内存数据，不从数据库刷新统计
+  if (isMemoryCleared.value) {
+    return;
+  }
   http.get("/data/stats").then((res: any) => {
     try {
       Object.keys(res).forEach((platform) => {
@@ -72,6 +90,8 @@ export function getDatabaseStat() {
 
 // 开始数据爬取
 export const startHarvest = async (singlePlatform: string) => {
+  // 开始新采集时，重置清空状态
+  isMemoryCleared.value = false;
   // 循环调用每个平台的爬取接口
   for (const platform of config.value) {
     const baseUrl = platform.baseUrl;
@@ -115,6 +135,7 @@ export const startHarvest = async (singlePlatform: string) => {
                   ...harvestResult.value[platform.key],
                   current: data.current,
                   total: data.total,
+                  percentage: data.percentage,
                   status: "pending",
                 };
               } else if (data.status === "complete") {

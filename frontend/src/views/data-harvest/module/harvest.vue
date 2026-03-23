@@ -12,9 +12,12 @@
           </div>
         </comConfig>
       </div>
-      <el-button class="database" @click="databasePopup = { show: true, platform: '' }" circle :icon="Box"
-        type="primary" :loading="loading">
-      </el-button>
+      <div style="display: flex; gap: 10px;">
+        <el-button @click="clearMemoryData" size="small" :icon="Delete">清空</el-button>
+        <el-button class="database" @click="databasePopup = { show: true, platform: '' }" circle :icon="Box"
+          type="primary" :loading="loading">
+        </el-button>
+      </div>
     </div>
     <div class="platform-list">
       <div :class="['platform-item', !harvestResult[item.key]?.status && 'disabled']" v-for="item in config">
@@ -42,6 +45,9 @@
               </div>
             </transition>
           </div>
+          <div class="percentage" v-if="harvestResult[item.key]?.status == 'pending' && harvestResult[item.key]?.percentage !== undefined">
+            {{ harvestResult[item.key]?.percentage }}%
+          </div>
           <div class="btn" @click="databasePopup = { show: true, platform: item.key }">
             条内容
             <el-icon style="color:#999;font-size: 12px">
@@ -67,9 +73,9 @@
 </template>
 <script setup lang="ts">
 import comConfig from '../components/config.vue'
-import { Operation, Close, Select, RefreshRight, Box, ArrowRight } from '@element-plus/icons-vue'
+import { Operation, Close, Select, RefreshRight, Box, ArrowRight, Delete } from '@element-plus/icons-vue'
 import { computed, ref } from 'vue'
-import { harvestResult, config, startHarvest } from '@/store/data-harvest'
+import { harvestResult, config, startHarvest, clearMemoryData } from '@/store/data-harvest'
 import comLoading from '../components/loading.vue'
 import comDatabase from '../components/database.vue'
 
@@ -199,6 +205,14 @@ const maxPlatformCount = computed(() => {
           position: absolute;
           right: 0;
         }
+      }
+
+      .percentage {
+        font-size: 12px;
+        color: #4CAF50;
+        font-weight: bold;
+        margin-left: 5px;
+        margin-right: 5px;
       }
 
       .btn {
