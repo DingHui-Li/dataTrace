@@ -134,16 +134,12 @@ class TiebaCrawler(BaseCrawler):
                             )
                             all_items.append(result)
                             
-                            # 发送进度（带百分比）
-                            estimated_total = 100
-                            percentage = min(int((current_index / estimated_total) * 100), 99)
+                            # 发送进度信息
                             yield json.dumps({
                                 'status': 'processing',
                                 'current': current_index,
                                 'total': total_items,
-                                'percentage': percentage,
                             }, ensure_ascii=False) + "\n"
-                            print(f'[进度] 贴吧采集: {percentage}%')
                     
                     page += 1
                     # 添加延时避免请求过快

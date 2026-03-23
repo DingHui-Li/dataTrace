@@ -46,10 +46,10 @@
 
 <script setup lang="ts">
 // import zhCn from 'element-plus/es/locale/lang/zh-cn'
-import { ref, defineProps, onMounted, watch, computed } from 'vue'
+import { ref, defineProps, onMounted, watch } from 'vue'
 import { Link, Refresh } from '@element-plus/icons-vue'
 import http from "@/utils/http";
-import { configMap, isMemoryCleared } from '@/store/data-harvest'
+import { configMap } from '@/store/data-harvest'
 
 const props = defineProps({
   platform: {
@@ -78,7 +78,7 @@ const total = ref(0)
 const startTime = ref('')
 const endTime = ref('')
 
-watch([() => props.platform, isMemoryCleared], () => {
+watch([() => props.platform], () => {
   fetchData()
 }, { immediate: true })
 
@@ -107,12 +107,6 @@ function handleRefresh() {
 }
 
 function fetchData() {
-  // 如果内存已清空，直接显示空数据
-  if (isMemoryCleared.value) {
-    tableData.value = []
-    total.value = 0
-    return
-  }
   loading.value = true
   http.get('/data/query', {
     params: {

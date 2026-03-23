@@ -1,9 +1,9 @@
 <template>
   <div class="charts" v-if="list.length">
     <div class="title">4-图表分析</div>
-    <div class="label" style="display: flex; justify-content: space-between; align-items: center;">
+    <div class="label">
       关键词
-      <el-select v-model="wordCloudColor" size="small" style="width: 120px;" @change="renderWordCloud">
+      <el-select v-model="wordCloudTheme" size="small" @change="handleThemeChange" style="margin-left: 10px;">
         <el-option label="蓝色系" value="blue" />
         <el-option label="红色系" value="red" />
       </el-select>
@@ -26,7 +26,7 @@ import { handleUpdate } from '../components/panel.ts'
 import { getEmotionEmoji } from '../index'
 
 const wordChartEl = ref()
-const wordCloudColor = ref('blue')
+const wordCloudTheme = ref('blue')
 
 const lineChartEl = ref()
 const lineChartIns = shallowRef()
@@ -76,28 +76,36 @@ const keywordMap = computed(() => {
   return t
 })
 
+// 处理主题切换
+function handleThemeChange() {
+  nextTick(() => {
+    renderWordCloud()
+  })
+}
+
 function renderWordCloud() {
+  if (!wordChartEl.value || !keywordMap.value || !Object.keys(keywordMap.value).length) return
+  // 清空容器内容，避免切换时重叠
+  wordChartEl.value.innerHTML = ''
   let max = 0
   let min = 0
   Object.keys(keywordMap.value).forEach((word: any) => {
     max = Math.max(keywordMap.value[word], max)
     min = Math.min(keywordMap.value[word], min)
   })
-  // 配色方案
-  const colorSchemes: Record<string, string[]> = {
-    blue: ['#4A90E2', '#5BA0E8', '#6BB0EF', '#7BC0F5', '#8BD0FC'],
-    red: ['#E24A4A', '#E85B5B', '#EF6B6B', '#F57B7B', '#FC8B8B']
-  }
-  const colors = colorSchemes[wordCloudColor.value] || colorSchemes.blue
-  // 清空容器，避免覆盖问题
-  if (wordChartEl.value) {
-    wordChartEl.value.innerHTML = ''
+  // 预设配色方案
+  const colorThemes: Record<string, string[]> = {
+    blue: ['#409EFF', '#66B1FF', '#909399', '#7879ef', '#2F3361', '#4A4C8C', '#6B6DB2'],
+    red: ['#F56C6C', '#FF6B6B', '#FF8E8E', '#FFB3B3', '#C45655', '#E6A23C', '#F5A623']
   }
   WordCloud(wordChartEl.value, {
     shape: "square",
     shuffle: true,
     backgroundColor: "transparent",
-    color: function() { return colors[Math.floor(Math.random() * colors.length)] },
+    color: function (word: string, weight: number) {
+      const colors = colorThemes[wordCloudTheme.value]
+      return colors[Math.floor(Math.random() * colors.length)]
+    },
     shrinkToFit: true,
     minSize: 5,
     list: Object.keys(keywordMap.value).map(word => {
