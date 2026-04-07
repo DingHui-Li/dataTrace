@@ -11,21 +11,32 @@
             配置
           </div>
         </comConfig>
+        <el-button class="clear-btn" @click="handleClearMemory" size="small" plain type="danger">
+          清空当前
+        </el-button>
       </div>
       <el-button class="database" @click="databasePopup = { show: true, platform: '' }" circle :icon="Box"
         type="primary" :loading="loading">
       </el-button>
     </div>
     <div class="platform-list">
-      <div :class="['platform-item', !harvestResult[item.key]?.status && 'disabled']" v-for="item in config">
+      <div :class="['platform-item', (!harvestResult[item.key]?.status || harvestResult[item.key]?.status == 'idle') && 'disabled']" v-for="item in config">
         <div class="line" :style="`background:${item.color}`"></div>
         <div class="platform-name">
           <div v-if="harvestResult[item.key]?.status == 'pending'" class="status" :style="`background:${item.color}`">
             <comLoading :size="16" />
           </div>
+          <div class="status clearing" v-else-if="harvestResult[item.key]?.status == 'clearing'" :style="`background: #E6A23C`">
+            <comLoading :size="16" />
+          </div>
           <div class="status success" v-else-if="harvestResult[item.key]?.status == 'success'">
             <el-icon class="icon">
               <Select />
+            </el-icon>
+          </div>
+          <div class="status" v-else-if="!harvestResult[item.key]?.status || harvestResult[item.key]?.status == 'idle'" :style="`background: #E4E7ED`">
+            <el-icon class="icon" style="color: #909399">
+              <Close />
             </el-icon>
           </div>
           <div class="status fail" v-else>
@@ -41,6 +52,10 @@
               <div class="num" :key="harvestResult[item.key]?.total || 0">{{ harvestResult[item.key]?.total || 0 }}
               </div>
             </transition>
+          </div>
+          <!-- 进度百分比显示 -->
+          <div class="progress-percent" v-if="harvestResult[item.key]?.status == 'pending'">
+            {{ harvestResult[item.key]?.progress || 0 }}%
           </div>
           <div class="btn" @click="databasePopup = { show: true, platform: item.key }">
             条内容
@@ -69,9 +84,32 @@
 import comConfig from '../components/config.vue'
 import { Operation, Close, Select, RefreshRight, Box, ArrowRight } from '@element-plus/icons-vue'
 import { computed, ref } from 'vue'
-import { harvestResult, config, startHarvest } from '@/store/data-harvest'
+import { harvestResult, config, startHarvest, clearMemoryData } from '@/store/data-harvest'
 import comLoading from '../components/loading.vue'
 import comDatabase from '../components/database.vue'
+
+// 清空当前批次内存数据
+const handleClearMemory = () => {
+  // 先显示数字归0动画效果
+  const tempResult: any = {}
+  config.value.forEach((platform: any) => {
+    const original = harvestResult.value[platform.key] || {}
+    tempResult[platform.key] = {
+      ...original,
+      status: 'clearing',
+      current: 0,
+      total: 0,
+      progress: 0,
+      msg: ''
+    }
+  })
+  harvestResult.value = tempResult
+  
+  // 延迟显示最终状态
+  setTimeout(() => {
+    clearMemoryData()
+  }, 500)
+}
 
 const databasePopup = ref({
   show: false,
@@ -116,6 +154,11 @@ const maxPlatformCount = computed(() => {
       .icon {
         margin-right: 5px;
       }
+    }
+
+    .clear-btn {
+      margin-left: 10px;
+      font-size: 12px;
     }
 
     .database {
@@ -179,17 +222,18 @@ const maxPlatformCount = computed(() => {
           &.fail {
             background-color: #FF5252;
           }
+
+          &.clearing {
+            background-color: #E6A23C;
+          }
         }
       }
 
       .count {
         position: relative;
-        flex: 1;
         text-align: right;
-        float: right;
         overflow: hidden;
         font-size: 15px;
-        padding-left: 28px;
         color: #fff;
         height: 20px;
         font-weight: bold;
@@ -199,6 +243,15 @@ const maxPlatformCount = computed(() => {
           position: absolute;
           right: 0;
         }
+      }
+
+      .progress-percent {
+        font-size: 12px;
+        color: #409EFF;
+        font-weight: bold;
+        margin-left: 5px;
+        min-width: 35px;
+        text-align: right;
       }
 
       .btn {
@@ -263,6 +316,17 @@ const maxPlatformCount = computed(() => {
 
   100% {
     transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
   }
 }
 

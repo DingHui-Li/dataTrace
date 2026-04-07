@@ -67,11 +67,22 @@ async def get_platform_stats():
         )
 
 @router.get("/data/clear")
-async def get_platform_stats():
+async def clear_all_data():
     try:
         flag = CrawlerRepository.clear_all_data()
         flag2 = AnalyzeRepository.clear_all_data()
         return JSONResponse(content={'result':flag and flag2})
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+
+@router.get("/data/clear-memory")
+async def clear_memory_data():
+    """仅清空当前批次内存数据（前端状态），不操作数据库"""
+    try:
+        return JSONResponse(content={'result': True, 'message': '内存数据已清空'})
     except Exception as e:
         raise HTTPException(
             status_code=500,

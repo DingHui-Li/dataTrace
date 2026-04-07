@@ -41,10 +41,12 @@ class WeiboCrawler(BaseCrawler):
         raise ValueError('无法从URL中提取用户ID，请确保URL格式正确')
 
     async def crawl(self) -> Dict:
+        estimated_total = 50  # 预估采集总数，用于计算进度
         yield json.dumps({
             'status': 'processing',
             'current': 0,
             'total': 0,
+            'progress': 0,
             'message': '开始获取微博数据'
         }, ensure_ascii=False) + "\n"
 
@@ -120,12 +122,16 @@ class WeiboCrawler(BaseCrawler):
                                     all_items.append(content_item)
                                     total_items = len(all_items)
                                     
-                                    # 发送进度
+                                    # 计算进度百分比
+                                    progress = min(int((current_index / estimated_total) * 100), 95)
+                                    # 发送进度（包含百分比）
                                     yield json.dumps({
                                         'status': 'processing',
                                         'current': current_index,
                                         'total': total_items,
+                                        'progress': progress,
                                     }, ensure_ascii=False) + "\n"
+                                    print(f'[微博采集进度] {progress}% (已获取 {current_index} 条)')
                             
                             page += 1
                             # 添加延时避免请求过快
@@ -152,8 +158,10 @@ class WeiboCrawler(BaseCrawler):
                 'status': 'complete',
                 'current': total_items,
                 'total': total_items,
+                'progress': 100,
                 'success': True
             }, ensure_ascii=False) + "\n"
+            print(f'[微博采集进度] 100% (完成，共 {total_items} 条)')
 
         except Exception as e:
             error_message = f'获取微博数据失败: {str(e)}'

@@ -56,6 +56,25 @@ watch(config.value, (v) => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(v));
 });
 getDatabaseStat();
+
+// 清空当前批次内存数据（仅前端状态，不影响数据库）
+export function clearMemoryData() {
+  // 创建新对象触发响应式更新
+  const newResult: any = {};
+  // 遍历配置，确保所有平台状态都重置为初始状态
+  config.value.forEach((platform) => {
+    newResult[platform.key] = {
+      status: 'idle',
+      current: 0,
+      total: 0,
+      progress: 0,
+      list: [],
+      msg: ''
+    };
+  });
+  harvestResult.value = newResult;
+}
+
 export function getDatabaseStat() {
   http.get("/data/stats").then((res: any) => {
     try {

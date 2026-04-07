@@ -1,7 +1,13 @@
 <template>
   <div class="charts" v-if="list.length">
     <div class="title">4-图表分析</div>
-    <div class="label">关键词</div>
+    <div class="label">
+      关键词
+      <el-select v-model="wordCloudTheme" size="small" @change="handleThemeChange" style="margin-left: 10px;">
+        <el-option label="蓝色系" value="blue" />
+        <el-option label="红色系" value="red" />
+      </el-select>
+    </div>
     <div class="chart word-chart" ref="wordChartEl" :style="`height:${(wordChartEl?.clientWidth) / 2}px`"></div>
     <div class="label">情绪趋势</div>
     <div class="chart" ref="lineChartEl" :style="`height:${lineChartEl?.clientWidth / 2}px`"></div>
@@ -20,6 +26,7 @@ import { handleUpdate } from '../components/panel.ts'
 import { getEmotionEmoji } from '../index'
 
 const wordChartEl = ref()
+const wordCloudTheme = ref('blue')
 
 const lineChartEl = ref()
 const lineChartIns = shallowRef()
@@ -69,21 +76,36 @@ const keywordMap = computed(() => {
   return t
 })
 
+// 处理主题切换
+function handleThemeChange() {
+  nextTick(() => {
+    renderWordCloud()
+  })
+}
+
 function renderWordCloud() {
+  if (!wordChartEl.value || !keywordMap.value || !Object.keys(keywordMap.value).length) return
+  // 清空容器内容，避免切换时重叠
+  wordChartEl.value.innerHTML = ''
   let max = 0
   let min = 0
-  console.log(keywordMap.value['科技美学'])
-  console.log(keywordMap.value['抽奖'])
   Object.keys(keywordMap.value).forEach((word: any) => {
     max = Math.max(keywordMap.value[word], max)
     min = Math.min(keywordMap.value[word], min)
   })
+  // 预设配色方案
+  const colorThemes: Record<string, string[]> = {
+    blue: ['#409EFF', '#66B1FF', '#909399', '#7879ef', '#2F3361', '#4A4C8C', '#6B6DB2'],
+    red: ['#F56C6C', '#FF6B6B', '#FF8E8E', '#FFB3B3', '#C45655', '#E6A23C', '#F5A623']
+  }
   WordCloud(wordChartEl.value, {
-    // minSize: 12,
     shape: "square",
     shuffle: true,
     backgroundColor: "transparent",
-    color: "#ffffff",
+    color: function (word: string, weight: number) {
+      const colors = colorThemes[wordCloudTheme.value]
+      return colors[Math.floor(Math.random() * colors.length)]
+    },
     shrinkToFit: true,
     minSize: 5,
     list: Object.keys(keywordMap.value).map(word => {
